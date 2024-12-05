@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allan Briteway Daily Task Log</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            background-color: #f4f4f4;
+            height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        header img {
+            max-width: 200px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #cb2417;
+            font-size: 24px;
+        }
+
+        .form-container {
+            background-color: #ffffff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            position: relative;
+        }
+
+        .form-container label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            margin-top: 15px;
+            color: white;
+            background-color: #cb2417;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .form-container input[type="date"],
+        .form-container input[type="time"],
+        .form-container input[type="text"],
+        .form-container select,
+        .form-container textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .labor-info-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .labor-info-row input[type="text"],
+        .labor-info-row select {
+            flex: 1;
+        }
+
+        .add-person-btn {
+            background-color: #f39c12;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .add-person-btn:hover {
+            background-color: #e67e22;
+        }
+
+        #duration {
+            font-weight: bold;
+            color: #2a2a2a;
+        }
+
+        .acknowledgement {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .submit-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://i.ibb.co/qD7s3ky/abu-logo.png" alt="Allan Briteway Logo">
+        <h1>Allan Briteway Daily Task Log</h1>
+    </header>
+
+    <div class="form-container">
+        <form id="dailyTaskForm" action="https://formspree.io/f/xyzyobqd" method="POST">
+            <!-- Date Field -->
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date">
+
+            <!-- Job # Field -->
+            <label for="jobNumber">Job #</label>
+            <input list="jobNumberOptions" id="jobNumber" name="jobNumber" value="NJ-22252">
+            <datalist id="jobNumberOptions">
+                <option value="NJ-21299">
+                <option value="NJ-22252">
+                <option value="NJ-22307">
+                <option value="Other">
+            </datalist>
+
+            <!-- Labor Info Section -->
+            <label for="laborInfo">Labor Info</label>
+            <div id="laborInfoContainer">
+                <div class="labor-info-row">
+                    <input type="text" name="laborName[]" placeholder="Name">
+                    <select name="laborClass[]">
+                        <option value="FM" selected>FM</option>
+                        <option value="JM">JM</option>
+                    </select>
+                </div>
+            </div>
+            <button type="button" class="add-person-btn" onclick="addLaborRow()">Add Person</button>
+
+            <!-- Time Log Section -->
+            <label for="timeLog">Time Log</label>
+            <input type="time" id="startTime" name="startTime">
+            <input type="time" id="endTime" name="endTime">
+            <p>Duration: <span id="duration">00:00</span></p>
+
+            <!-- Task Description Section -->
+            <label for="taskDescription">Today's Task Description</label>
+            <textarea id="taskDescription" name="taskDescription" rows="5" placeholder="Describe the tasks performed today..."></textarea>
+
+            <!-- Acknowledgement -->
+            <div id="acknowledgement" class="acknowledgement">Daily Log Submitted</div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="submit-btn">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        // Auto-populate current date
+        window.onload = function() {
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+            const currentTime = now.toTimeString().substring(0, 5);
+            
+            document.getElementById('date').value = today;
+            document.getElementById('startTime').value = currentTime;
+            document.getElementById('endTime').value = currentTime;
+            calculateDuration();
+        };
+
+        // Automatically replace "Other" with an editable value
+        document.getElementById('jobNumber').addEventListener('input', function(e) {
+            if (e.target.value === 'Other') {
+                e.target.setAttribute('list', '');
+            } else {
+                e.target.setAttribute('list', 'jobNumberOptions');
+            }
+        });
+
+        // Function to add a new row for labor info
+        function addLaborRow() {
+            const container = document.getElementById('laborInfoContainer');
+            const newRow = document.createElement('div');
+            newRow.classList.add('labor-info-row');
+            newRow.innerHTML = ` 
+                <input type="text" name="laborName[]" placeholder="Name">
+                <select name="laborClass[]">
+                    <option value="FM" selected>FM</option>
+                    <option value="JM">JM</option>
+                </select>
+            `;
+            container.appendChild(newRow);
+        }
+
+        // Function to calculate and display the duration
+        function calculateDuration() {
+            const start = document.getElementById('startTime').value;
+            const end = document.getElementById('endTime').value;
+
+            if (start && end) {
+                const [startHours, startMinutes] = start.split(':').map(Number);
+                const [endHours, endMinutes] = end.split(':').map(Number);
+
+                let durationHours = endHours - startHours;
+                let durationMinutes = endMinutes - startMinutes;
+
+                if (durationMinutes < 0) {
+                    durationMinutes += 60;
+                    durationHours -= 1;
+                }
+
+                if (durationHours < 0) {
+                    durationHours += 24; // Handle overnight shifts
+                }
+
+                document.getElementById('duration').textContent = 
+                    `${String(durationHours).padStart(2, '0')}:${String(durationMinutes).padStart(2, '0')}`;
+            }
+        }
+
+        // Add event listeners to start and end time inputs
+        document.getElementById('startTime').addEventListener('input', calculateDuration);
+        document.getElementById('endTime').addEventListener('input', calculateDuration);
+
+        // Show acknowledgment after form submission
+        document.getElementById('dailyTaskForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form from actually submitting and reloading the page
+
+            const acknowledgement = document.getElementById('acknowledgement');
+            acknowledgement.style.display = 'block';
+
+            // Hide the acknowledgment message after 3 seconds
+            setTimeout(function() {
+                acknowledgement.style.display = 'none';
+                document.getElementById('dailyTaskForm').submit(); // Actually submit the form after showing acknowledgment
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
